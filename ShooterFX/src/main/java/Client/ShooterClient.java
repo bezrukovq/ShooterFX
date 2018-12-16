@@ -10,6 +10,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.shape.*;
@@ -19,15 +20,17 @@ import javafx.util.Duration;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.HashMap;
+import java.util.Scanner;
 
 public class ShooterClient extends Application implements Receive {
 
+    public TextField hostField;
     @FXML
     private Button btn_connect;
     @FXML
     private AnchorPane gameMap;
 
-    private final int PORT = 3456;
+    private final int PORT = 8083;
     private String host = "localhost";
     private Socket s;
     private ShooterService service;
@@ -61,6 +64,9 @@ public class ShooterClient extends Application implements Receive {
     }
 
     public void connect(ActionEvent actionEvent) {
+        int x = (int) (Math.random()*100);
+        host=hostField.getText();
+        gameMap.getChildren().removeAll(hostField);
         try {
             s = new Socket(host, PORT);
             service = new ShooterService(s, this);
@@ -81,7 +87,7 @@ public class ShooterClient extends Application implements Receive {
                     case SPACE:
                         if (!isShooting) {
                             service.sendShot(hero.getX(), hero.getY(), directionH, direction, vertical);
-                            RotateTransition rt = new RotateTransition(Duration.seconds(2), hero);
+                            RotateTransition rt = new RotateTransition(Duration.seconds(1.5), hero);
                             rt.setByAngle(-360);
                             rt.play();
                             isShooting = true;
@@ -120,13 +126,15 @@ public class ShooterClient extends Application implements Receive {
                 }
         });
         gameMap.getScene().setOnKeyPressed(event -> Platform.runLater(() -> {
+            double move;
             if (canMove && !dead)
                 switch (event.getCode()) {
                     case DOWN:
                         direction = 1;
                         vertical = true;
                         directionH = 2.5;
-                        hero.setY(hero.getY() + moveSpeed);
+                        move =hero.getY() + moveSpeed;
+                        hero.setY(move>850?850:move);
                         service.sendMove(hero.getX(), hero.getY(), curScale);
                         break;
                     case S:
@@ -139,12 +147,14 @@ public class ShooterClient extends Application implements Receive {
                         directionH = -0.8;
                         direction = -1;
                         vertical = true;
-                        hero.setY(hero.getY() - moveSpeed);
+                        move=hero.getY() - moveSpeed;
+                        hero.setY(move<0?0:move);
                         service.sendMove(hero.getX(), hero.getY(), curScale);
                         break;
                     case LEFT:
                         curScale = -1;
-                        hero.setX(hero.getX() - moveSpeed);
+                        move =hero.getX() - moveSpeed;
+                        hero.setX(move<0?0:move);
                         direction = -1;
                         hero.setScaleX(curScale);
                         vertical = false;
@@ -153,11 +163,12 @@ public class ShooterClient extends Application implements Receive {
                         break;
                     case RIGHT:
                         curScale = 1;
+                        move=hero.getX() + moveSpeed;
                         hero.setScaleX(curScale);
                         vertical = false;
                         direction = 1;
                         directionH = 1;
-                        hero.setX(hero.getX() + moveSpeed);
+                        hero.setX(move>850?850:move);
                         service.sendMove(hero.getX(), hero.getY(), curScale);
                         break;
 
@@ -184,7 +195,7 @@ public class ShooterClient extends Application implements Receive {
 
     @Override
     public void rEnemyShoot(int id, double Ex, double Ey, double directionH, int direction, boolean vertical) {
-        RotateTransition rt = new RotateTransition(Duration.seconds(2), enemies.get(id));
+        RotateTransition rt = new RotateTransition(Duration.seconds(1.5), enemies.get(id));
         rt.setByAngle(-360);
         rt.play();
         rt.setOnFinished(event1 -> {

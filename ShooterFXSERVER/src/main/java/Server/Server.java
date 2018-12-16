@@ -6,7 +6,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 
 public class Server {
-    final int PORT = 3456;
+    final int PORT = 8083;
     ArrayList<Client> clients = new ArrayList<>();
     public static void main(String[] args) throws IOException {
         Server server = new Server();
