@@ -1,4 +1,4 @@
-package Server;
+package server;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -6,18 +6,21 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 
-public class Client implements Runnable {
+public class Client implements Runnable,Comparable<Client> {
     Socket socket;
     Thread thread;
-    Server server;
+    ServerClass server;
     BufferedReader br = null;
     PrintWriter os = null;
+    int kills = 0;
     int userId;
+    boolean dead = false;
     double x =0;
     double y =0;
     static int uCount = 0;
+    String nickName;
 
-    public Client(Server server, Socket socket) {
+    public Client(ServerClass server, Socket socket) {
         this.socket = socket;
         this.server = server;
         userId = uCount++;
@@ -25,20 +28,23 @@ public class Client implements Runnable {
             br = new BufferedReader((new InputStreamReader((socket.getInputStream()))));
             os = new PrintWriter(socket.getOutputStream(), true);
             os.println(userId);
+            nickName= br.readLine();
             server.pConnected(userId,x,y);
         } catch (IOException e) {
             e.printStackTrace();
         }
         if (server.clients.size() != 0)
-            for (Client client : server.clients) {
-                os.println(1);
-                os.println(client.userId);
-                os.println(client.x);
-                os.println(client.y);
-                try {
-                    Thread.sleep(300);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+            for (Client client : server.clients.values()) {
+                if(!client.dead) {
+                    os.println(1);
+                    os.println(client.userId);
+                    os.println(client.x);
+                    os.println(client.y);
+                    try {
+                        Thread.sleep(300);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         thread = new Thread(this);
@@ -67,20 +73,34 @@ public class Client implements Runnable {
                         server.pShot(userId, p1, p2, p3, p4, p5);
                         break;
                     case 4:
-                        server.pDead(userId,4);
+                        //dead
+                        server.clients.get(Integer.parseInt(br.readLine())).kills++;
+                        server.pHit(userId,4);
                         break;
                     case 5:
-                        server.pDead(userId,5);
+                        //destroyed
+                        dead=true;
+                        server.pHit(userId,5);
+                        break;
+                    case 6:
+                        //hit
+                        server.pHit(userId,6);
                         break;
                 }
             } catch (java.net.SocketException e) {
-                server.pDead(userId, 5);
-                server.clients.remove(this);
+                server.pHit(userId, 5);
+                server.clients.remove(userId);
                 break;
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
+    }
+
+
+    @Override
+    public int compareTo(Client o) {
+        return o.kills-kills;
     }
 
 

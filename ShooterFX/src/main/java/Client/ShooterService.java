@@ -16,12 +16,13 @@ public class ShooterService {
     private int id;
 
 
-    public ShooterService(Socket client, Receive r) {
+    public ShooterService(Socket client, Receive r,String nickName) {
         this.r = r;
         try {
             os = new PrintWriter(client.getOutputStream(), true);
             br = new BufferedReader((new InputStreamReader((client.getInputStream()))));
             myId = Integer.parseInt(br.readLine());
+            os.println(nickName);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -82,12 +83,24 @@ public class ShooterService {
                         );
                         break;
                     case 4:
+                        //dead
                         id = Integer.parseInt(br.readLine());
                         Platform.runLater(() -> r.rEnemyDead(id));
                         break;
                     case 5:
+                        //destroyed
                         id = Integer.parseInt(br.readLine());
                         Platform.runLater(() -> r.rDestroyed(id));
+                        break;
+                    case 6:
+                        //hit
+                        id = Integer.parseInt(br.readLine());
+                        Platform.runLater(()-> r.rHit(id));
+                        break;
+                    case 7:
+                        //renew records
+                        String records = br.readLine();
+                        Platform.runLater(()-> r.updateRecords(records));
                         break;
                 }
             }
@@ -96,11 +109,16 @@ public class ShooterService {
         }
     }
 
-    public void sendDead() {
+    public void sendDead(int id) {
         os.println(4);
+        os.println(id);
     }
 
     public void sendDestroyed() {
         os.println(5);
+    }
+
+    public void sendHit() {
+        os.println(6);
     }
 }

@@ -10,9 +10,10 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.*;
 import javafx.scene.shape.*;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -25,6 +26,10 @@ import java.util.Scanner;
 public class ShooterClient extends Application implements Receive {
 
     public TextField hostField;
+
+    public Label top;
+    public TextField nickName;
+    public Label hp;
     @FXML
     private Button btn_connect;
     @FXML
@@ -44,6 +49,7 @@ public class ShooterClient extends Application implements Receive {
     private boolean canMove = true;
     private boolean dead = false;
     private boolean destroyed = false;
+    private int health = 100;
     private HashMap<Integer, ImageView> enemies = new HashMap<>();
 
 
@@ -64,12 +70,14 @@ public class ShooterClient extends Application implements Receive {
     }
 
     public void connect(ActionEvent actionEvent) {
-        int x = (int) (Math.random()*100);
-        host=hostField.getText();
-        gameMap.getChildren().removeAll(hostField);
+        hp.setText("100");
+        gameMap.setBackground(new Background(Images.background));
+        int x = (int) (Math.random() * 100);
+        host = hostField.getText();
+        gameMap.getChildren().removeAll(hostField,nickName);
         try {
             s = new Socket(host, PORT);
-            service = new ShooterService(s, this);
+            service = new ShooterService(s, this,nickName.getText());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -87,7 +95,7 @@ public class ShooterClient extends Application implements Receive {
                     case SPACE:
                         if (!isShooting) {
                             service.sendShot(hero.getX(), hero.getY(), directionH, direction, vertical);
-                            RotateTransition rt = new RotateTransition(Duration.seconds(1.5), hero);
+                            RotateTransition rt = new RotateTransition(Duration.seconds(1), hero);
                             rt.setByAngle(-360);
                             rt.play();
                             isShooting = true;
@@ -133,8 +141,8 @@ public class ShooterClient extends Application implements Receive {
                         direction = 1;
                         vertical = true;
                         directionH = 2.5;
-                        move =hero.getY() + moveSpeed;
-                        hero.setY(move>850?850:move);
+                        move = hero.getY() + moveSpeed;
+                        hero.setY(move > 650 ? 650 : move);
                         service.sendMove(hero.getX(), hero.getY(), curScale);
                         break;
                     case S:
@@ -147,14 +155,14 @@ public class ShooterClient extends Application implements Receive {
                         directionH = -0.8;
                         direction = -1;
                         vertical = true;
-                        move=hero.getY() - moveSpeed;
-                        hero.setY(move<0?0:move);
+                        move = hero.getY() - moveSpeed;
+                        hero.setY(move < 0 ? 0 : move);
                         service.sendMove(hero.getX(), hero.getY(), curScale);
                         break;
                     case LEFT:
                         curScale = -1;
-                        move =hero.getX() - moveSpeed;
-                        hero.setX(move<0?0:move);
+                        move = hero.getX() - moveSpeed;
+                        hero.setX(move < 0 ? 0 : move);
                         direction = -1;
                         hero.setScaleX(curScale);
                         vertical = false;
@@ -163,12 +171,12 @@ public class ShooterClient extends Application implements Receive {
                         break;
                     case RIGHT:
                         curScale = 1;
-                        move=hero.getX() + moveSpeed;
+                        move = hero.getX() + moveSpeed;
                         hero.setScaleX(curScale);
                         vertical = false;
                         direction = 1;
                         directionH = 1;
-                        hero.setX(move>850?850:move);
+                        hero.setX(move > 650 ? 650 : move);
                         service.sendMove(hero.getX(), hero.getY(), curScale);
                         break;
 
@@ -195,7 +203,7 @@ public class ShooterClient extends Application implements Receive {
 
     @Override
     public void rEnemyShoot(int id, double Ex, double Ey, double directionH, int direction, boolean vertical) {
-        RotateTransition rt = new RotateTransition(Duration.seconds(1.5), enemies.get(id));
+        RotateTransition rt = new RotateTransition(Duration.seconds(1), enemies.get(id));
         rt.setByAngle(-360);
         rt.play();
         rt.setOnFinished(event1 -> {
@@ -217,24 +225,54 @@ public class ShooterClient extends Application implements Receive {
 
             if (!destroyed)
                 c.boundsInParentProperty().addListener((a, b, d) -> {
-                    if (hero.getBoundsInParent().intersects(c.getBoundsInParent())) {
-                        if (!dead) {
-                            hero.setImage(Images.DEAD);
-                            service.sendDead();
-                            canMove = false;
-                            dead = true;
+                    for (ImageView hero : enemies.values()) {
+                        if (hero.getBoundsInParent().intersects(c.getBoundsInParent())) {
                             pt.stop();
                             gameMap.getChildren().removeAll(c);
+                        }
+                    }
+                    if (hero.getBoundsInParent().intersects(c.getBoundsInParent())) {
+                        if (!dead) {
+                            health -= 34;
+                            hp.setText(String.valueOf(health));
+                            service.sendHit();
+                            animateHit(hero);
+                            if (health < 0) {
+                                hp.setText("DEAD");
+                                hero.setImage(Images.DEAD);
+                                service.sendDead(id);
+                                canMove = false;
+                                dead = true;
+                            }
+                            gameMap.getChildren().removeAll(c);
+                            pt.stop();
                         } else {
                             pt.stop();
                             gameMap.getChildren().removeAll(c);
                             service.sendDestroyed();
-                            destroyed=true;
+                            destroyed = true;
                         }
                     }
                 });
             pt.play();
             pt.setOnFinished(event -> gameMap.getChildren().removeAll(c));
+        });
+    }
+
+    private void animateHit(ImageView hero) {
+        RotateTransition rT = new RotateTransition(Duration.seconds(0.1), hero);
+        rT.setByAngle(-30);
+        rT.play();
+        rT.setOnFinished(event -> {
+            RotateTransition rT2 = new RotateTransition(Duration.seconds(0.1), hero);
+            rT2.setByAngle(60);
+            rT2.play();
+            rT2.setOnFinished(event2 ->
+            {
+                RotateTransition rT3 = new RotateTransition(Duration.seconds(0.1), hero);
+                rT3.setByAngle(-30);
+                rT3.play();
+            });
         });
     }
 
@@ -247,5 +285,15 @@ public class ShooterClient extends Application implements Receive {
     public void rDestroyed(int id) {
         gameMap.getChildren().removeAll(enemies.get(id));
         enemies.remove(id);
+    }
+
+    @Override
+    public void rHit(int id) {
+        animateHit(enemies.get(id));
+    }
+
+    @Override
+    public void updateRecords(String records) {
+        top.setText(records);
     }
 }

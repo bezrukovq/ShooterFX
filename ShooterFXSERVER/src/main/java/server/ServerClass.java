@@ -1,23 +1,27 @@
-package Server;
+package server;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 
-public class Server {
+public class ServerClass {
     final int PORT = 8083;
-    ArrayList<Client> clients = new ArrayList<>();
+    public HashMap<Integer,Client> clients = new HashMap<>();
     public static void main(String[] args) throws IOException {
-        Server server = new Server();
+        ServerClass server = new ServerClass();
     }
-    public Server(){
+    public ServerClass(){
         ServerSocket s = null;
         try {
             s = new ServerSocket(PORT);
             while (true) {
                 Socket client = s.accept();
-                clients.add(new Client(this,client));
+                clients.put(Client.uCount,new Client(this,client));
+                recreateRecords();
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -25,7 +29,7 @@ public class Server {
     }
     public void pMoved(int id, Double x, Double y,String scale){
         if(clients.size()!=0)
-        clients.forEach(client -> {
+        clients.values().forEach(client -> {
             if(client.userId!=id) {
                 client.os.println(2);
                 client.os.println(id);
@@ -37,7 +41,7 @@ public class Server {
     }
     public void pShot(int id, String Ex,String Ey,String directionH,String direction,String vertical){
         if(clients.size()!=0)
-            clients.forEach(client -> {
+            clients.values().forEach(client -> {
                 if(client.userId!=id) {
                     client.os.println(3);
                     client.os.println(id);
@@ -52,7 +56,7 @@ public class Server {
     }
     public void pConnected(int id,double x,double y){
         if(clients.size()!=0)
-            clients.forEach(client -> {
+            clients.values().forEach(client -> {
                 if(client.userId!=id) {
                     client.os.println(1);
                     client.os.println(id);
@@ -62,13 +66,34 @@ public class Server {
             });
     }
 
-    public void pDead(int userId,int code) {
+    public void pHit(int userId,int code) {
+        System.out.println(userId+""+code);
         if(clients.size()!=0)
-            clients.forEach(client -> {
+            clients.values().forEach(client -> {
                 if(client.userId!=userId) {
                     client.os.println(code);
                     client.os.println(userId);
                 }
+            });
+        if (code==4) {
+            System.out.println("death");
+            recreateRecords();
+        }
+    }
+
+    private void recreateRecords() {
+        System.out.println("RECreate");
+        ArrayList<Client> topClients = new ArrayList<>(clients.values());
+        Collections.sort(topClients);
+        int size = topClients.size()>5?5:topClients.size();
+        StringBuilder records= new StringBuilder();
+        System.out.println(records);
+        for (int i = 0; i <size; i++)
+            records.append(i+1+")"+topClients.get(i).nickName).append(":").append(topClients.get(i).kills).append("   ");
+        if(clients.size()!=0)
+            clients.values().forEach(client -> {
+                    client.os.println(7);
+                    client.os.println(records);
             });
     }
 }
