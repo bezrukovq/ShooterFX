@@ -6,16 +6,36 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane fx:id="gameMap" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="700.0" prefWidth="700.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Client.ShooterClient">
+<AnchorPane fx:id="gameMap" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="700.0" prefWidth="700.0" style="-fx-background-image: url('source/Pre.jpg')" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Client.ShooterClient">
    <children>
-      <Button fx:id="btn_connect" layoutX="232.0" layoutY="185.0" mnemonicParsing="false" onAction="#connect" text="Connect to server" />
-      <TextField fx:id="hostField" layoutX="207.0" layoutY="135.0" />
+      <Button fx:id="btn_connect" layoutX="282.0" layoutY="218.0" mnemonicParsing="false" onAction="#connect" text="Connect to server" />
+      <TextField fx:id="hostField" layoutX="257.0" layoutY="171.0" />
       <Label fx:id="top" prefHeight="17.0" prefWidth="700.0" textFill="WHITE" wrapText="true">
          <font>
             <Font size="12.0" />
          </font>
       </Label>
-      <TextField fx:id="nickName" layoutX="207.0" layoutY="78.0" />
+      <TextField fx:id="nickName" layoutX="257.0" layoutY="110.0" />
       <Label fx:id="hp" layoutX="665.0" layoutY="-2.0" textFill="WHITE" />
+      <Label fx:id="l_nick" alignment="CENTER" layoutX="257.0" layoutY="79.0" prefHeight="31.0" prefWidth="175.0" text="Nickname" wrapText="true">
+         <font>
+            <Font name="System Bold Italic" size="18.0" />
+         </font>
+      </Label>
+      <Label fx:id="l_serv" alignment="CENTER" layoutX="257.0" layoutY="141.0" prefHeight="31.0" prefWidth="175.0" text="Server IP" textAlignment="CENTER" wrapText="true">
+         <font>
+            <Font name="System Bold Italic" size="18.0" />
+         </font>
+      </Label>
+      <Label fx:id="l_move" layoutX="532.0" layoutY="46.0" prefHeight="33.0" prefWidth="212.0" text="Move :arrows" wrapText="true">
+         <font>
+            <Font size="18.0" />
+         </font>
+      </Label>
+      <Label fx:id="l_space" layoutX="532.0" layoutY="89.0" prefHeight="33.0" prefWidth="212.0" text="Shoot: space" wrapText="true">
+         <font>
+            <Font size="18.0" />
+         </font>
+      </Label>
    </children>
 </AnchorPane>

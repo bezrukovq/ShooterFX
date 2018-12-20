@@ -30,6 +30,10 @@ public class ShooterClient extends Application implements Receive {
     public Label top;
     public TextField nickName;
     public Label hp;
+    public Label l_nick;
+    public Label l_move;
+    public Label l_serv;
+    public Label l_space;
     @FXML
     private Button btn_connect;
     @FXML
@@ -81,7 +85,7 @@ public class ShooterClient extends Application implements Receive {
         }
         hp.setText("100");
         gameMap.setBackground(new Background(Images.background));
-        gameMap.getChildren().removeAll(hostField, nickName);
+        gameMap.getChildren().removeAll(hostField, nickName,l_move,l_nick,l_serv,l_space);
         hero = new ImageView(Images.HERO);
         hero.setX(x);
         hero.setY(y);
