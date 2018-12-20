@@ -16,13 +16,15 @@ public class ShooterService {
     private int id;
 
 
-    public ShooterService(Socket client, Receive r,String nickName) {
+    public ShooterService(Socket client, Receive r,String nickName,int x, int y) {
         this.r = r;
         try {
             os = new PrintWriter(client.getOutputStream(), true);
             br = new BufferedReader((new InputStreamReader((client.getInputStream()))));
             myId = Integer.parseInt(br.readLine());
             os.println(nickName);
+            os.println(x);
+            os.println(y);
         } catch (IOException e) {
             e.printStackTrace();
         }

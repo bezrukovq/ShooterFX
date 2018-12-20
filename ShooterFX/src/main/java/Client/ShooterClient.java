@@ -50,7 +50,7 @@ public class ShooterClient extends Application implements Receive {
     private boolean dead = false;
     private boolean destroyed = false;
     private int health = 100;
-    private HashMap<Integer, ImageView> enemies = new HashMap<>();
+    public HashMap<Integer, ImageView> enemies = new HashMap<>();
 
 
     public static void main(String[] args) {
@@ -70,18 +70,21 @@ public class ShooterClient extends Application implements Receive {
     }
 
     public void connect(ActionEvent actionEvent) {
-        hp.setText("100");
-        gameMap.setBackground(new Background(Images.background));
-        int x = (int) (Math.random() * 100);
+        int x = (int) (Math.random() * 650);
+        int y = (int) (Math.random() * 650);
         host = hostField.getText();
-        gameMap.getChildren().removeAll(hostField,nickName);
         try {
             s = new Socket(host, PORT);
-            service = new ShooterService(s, this,nickName.getText());
+            service = new ShooterService(s, this, nickName.getText(), x, y);
         } catch (IOException e) {
             e.printStackTrace();
         }
+        hp.setText("100");
+        gameMap.setBackground(new Background(Images.background));
+        gameMap.getChildren().removeAll(hostField, nickName);
         hero = new ImageView(Images.HERO);
+        hero.setX(x);
+        hero.setY(y);
         gameMap.getChildren().addAll(hero);
         btn_connect.setVisible(false);
         btn_connect.setDisable(true);
@@ -93,6 +96,7 @@ public class ShooterClient extends Application implements Receive {
             if (canMove)
                 switch (event.getCode()) {
                     case SPACE:
+                        //shoot
                         if (!isShooting) {
                             service.sendShot(hero.getX(), hero.getY(), directionH, direction, vertical);
                             RotateTransition rt = new RotateTransition(Duration.seconds(1), hero);
@@ -145,10 +149,11 @@ public class ShooterClient extends Application implements Receive {
                         hero.setY(move > 650 ? 650 : move);
                         service.sendMove(hero.getX(), hero.getY(), curScale);
                         break;
-                    case S:
+                    case L:
                         moveSpeed--;
                         break;
-                    case W:
+                    case P:
+                        //secret cheat for speed(for test and fun)
                         moveSpeed++;
                         break;
                     case UP:
@@ -194,6 +199,7 @@ public class ShooterClient extends Application implements Receive {
         gameMap.getChildren().addAll(enemy);
     }
 
+    //Enemy move
     @Override
     public void rEnemyXY(int id, double x, double y, int scaleX) {
         enemies.get(id).setX(x);
@@ -223,14 +229,14 @@ public class ShooterClient extends Application implements Receive {
             c.setX(x);
             PathTransition pt = new PathTransition(Duration.millis(2000), path, c);
 
-            if (!destroyed)
-                c.boundsInParentProperty().addListener((a, b, d) -> {
-                    for (ImageView hero : enemies.values()) {
-                        if (hero.getBoundsInParent().intersects(c.getBoundsInParent())) {
-                            pt.stop();
-                            gameMap.getChildren().removeAll(c);
-                        }
+            c.boundsInParentProperty().addListener((a, b, d) -> {
+                for (ImageView hero : enemies.values()) {
+                    if (hero.getBoundsInParent().intersects(c.getBoundsInParent())) {
+                        pt.stop();
+                        gameMap.getChildren().removeAll(c);
                     }
+                }
+                if (!destroyed)
                     if (hero.getBoundsInParent().intersects(c.getBoundsInParent())) {
                         if (!dead) {
                             health -= 34;
@@ -253,7 +259,7 @@ public class ShooterClient extends Application implements Receive {
                             destroyed = true;
                         }
                     }
-                });
+            });
             pt.play();
             pt.setOnFinished(event -> gameMap.getChildren().removeAll(c));
         });
@@ -285,6 +291,7 @@ public class ShooterClient extends Application implements Receive {
     public void rDestroyed(int id) {
         gameMap.getChildren().removeAll(enemies.get(id));
         enemies.remove(id);
+        System.out.println(enemies.size());
     }
 
     @Override

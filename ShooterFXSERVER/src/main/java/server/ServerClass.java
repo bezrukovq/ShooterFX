@@ -10,11 +10,14 @@ import java.util.List;
 
 public class ServerClass {
     final int PORT = 8083;
-    public HashMap<Integer,Client> clients = new HashMap<>();
+    HashMap<Integer,Client> clients = new HashMap<>();
+
     public static void main(String[] args) throws IOException {
         ServerClass server = new ServerClass();
+        server.startServer();
     }
-    public ServerClass(){
+
+    public void startServer(){
         ServerSocket s = null;
         try {
             s = new ServerSocket(PORT);
@@ -67,7 +70,6 @@ public class ServerClass {
     }
 
     public void pHit(int userId,int code) {
-        System.out.println(userId+""+code);
         if(clients.size()!=0)
             clients.values().forEach(client -> {
                 if(client.userId!=userId) {
@@ -76,18 +78,15 @@ public class ServerClass {
                 }
             });
         if (code==4) {
-            System.out.println("death");
             recreateRecords();
         }
     }
 
     private void recreateRecords() {
-        System.out.println("RECreate");
         ArrayList<Client> topClients = new ArrayList<>(clients.values());
         Collections.sort(topClients);
         int size = topClients.size()>5?5:topClients.size();
         StringBuilder records= new StringBuilder();
-        System.out.println(records);
         for (int i = 0; i <size; i++)
             records.append(i+1+")"+topClients.get(i).nickName).append(":").append(topClients.get(i).kills).append("   ");
         if(clients.size()!=0)

@@ -29,10 +29,15 @@ public class Client implements Runnable,Comparable<Client> {
             os = new PrintWriter(socket.getOutputStream(), true);
             os.println(userId);
             nickName= br.readLine();
+            x = Integer.parseInt(br.readLine());
+            y= Integer.parseInt(br.readLine());
+            //send new user to others
             server.pConnected(userId,x,y);
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        //send all enmies to new user
         if (server.clients.size() != 0)
             for (Client client : server.clients.values()) {
                 if(!client.dead) {
@@ -59,12 +64,14 @@ public class Client implements Runnable,Comparable<Client> {
                 int code = Integer.parseInt(br.readLine());
                 switch (code) {
                     case 2:
+                        //move
                          x = Double.parseDouble(br.readLine());
                          y = Double.parseDouble(br.readLine());
                          String scale = br.readLine();
                          server.pMoved(userId, x, y, scale);
                          break;
                     case 3:
+                        //shot
                         String p1 = br.readLine();
                         String p2 = br.readLine();
                         String p3 = br.readLine();
@@ -97,25 +104,8 @@ public class Client implements Runnable,Comparable<Client> {
         }
     }
 
-
     @Override
     public int compareTo(Client o) {
         return o.kills-kills;
     }
-
-
-
-   /* public static void main(String[] args) {
-        final int PORT = 3456;
-        String host = "localhost";
-        Socket s;
-        try {
-            s = new Socket(host, PORT);
-            String myname = ChatService.askForName(s,true);
-            String friendname = ChatService.askForName(s,false);
-            ChatService.chat(myname,friendname,s,false);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }*/
 }
